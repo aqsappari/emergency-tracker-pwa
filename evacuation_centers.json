@@ -1,0 +1,32 @@
+[
+  {
+    "id": "ec_01",
+    "name": "Evacuation Center 1",
+    "latitude": 6.95594,
+    "longitude": 121.95691
+  },
+  {
+    "id": "ec_02",
+    "name": "Evacuation Center 2",
+    "latitude": 6.95685,
+    "longitude": 121.96176
+  },
+  {
+    "id": "ec_03",
+    "name": "Evacuation Center 3",
+    "latitude": 6.95273,
+    "longitude": 121.95924
+  },
+  {
+    "id": "ec_04",
+    "name": "Evacuation Center 4",
+    "latitude": 6.95547,
+    "longitude": 121.96883
+  },
+  {
+    "id": "ec_05",
+    "name": "Evacuation Center 5",
+    "latitude": 6.95521,
+    "longitude": 121.95582
+  }
+]
