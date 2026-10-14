@@ -46,9 +46,9 @@ export function initializeMap(onPinSelectedCallback) {
 
   L.control.zoom({ position: "topright" }).addTo(map);
 
-  // Live online tiles with automatic offline caching via Service Worker
+  // Live online tiles with automatic offline caching via Service Worker (with API Key)
   L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+    "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=cb1_4k4e_1_a33807e1a728fc1536a6ebe6",
     {
       minZoom: MAP_CONFIG.minZoom,
       maxZoom: MAP_CONFIG.maxZoom,

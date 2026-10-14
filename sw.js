@@ -1,4 +1,5 @@
-const CACHE_NAME = "gabaylink-navigator-v2";
+const CACHE_NAME = "gabaylink-navigator-v3";
+const TILE_CACHE_NAME = "gabaylink-tiles-cache-v1";
 const ASSETS_TO_CACHE = [
   "./index.html",
   "./manifest.json",
@@ -28,7 +29,7 @@ self.addEventListener("activate", (event) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) {
+          if (key !== CACHE_NAME && key !== TILE_CACHE_NAME) {
             return caches.delete(key);
           }
         }),
@@ -41,20 +42,22 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Runtime caching for map tiles (Carto / OSM)
+  // Runtime caching for map tiles (Carto / OSM) with API keys
   if (
     url.origin.includes("basemaps.cartocdn.com") ||
     url.origin.includes("openstreetmap.org")
   ) {
     event.respondWith(
-      caches.open("gabaylink-tiles-cache").then((cache) => {
+      caches.open(TILE_CACHE_NAME).then((cache) => {
         return cache.match(event.request).then((cachedResponse) => {
           if (cachedResponse) {
             return cachedResponse;
           }
           return fetch(event.request)
             .then((networkResponse) => {
-              cache.put(event.request, networkResponse.clone());
+              if (networkResponse && networkResponse.status === 200) {
+                cache.put(event.request, networkResponse.clone());
+              }
               return networkResponse;
             })
             .catch(() => {
