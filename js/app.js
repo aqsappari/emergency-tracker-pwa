@@ -7,14 +7,17 @@ import {
   destMarker,
   map,
 } from "./map.js";
-import { calculateRouteAndMetrics } from "./routing.js";
+import { calculateRouteAndMetrics, initRouting } from "./routing.js";
 
 let watchId = null;
 
-function initApp() {
+async function initApp() {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").catch(() => {});
   }
+
+  // Initialize routing engine / services on startup
+  await initRouting();
 
   initializeMap(handlePinSelect);
   startLiveGeolocation();

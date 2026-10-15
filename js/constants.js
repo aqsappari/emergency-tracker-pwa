@@ -4,5 +4,5 @@ export const CENTER = [6.9541, 121.9608];
 export const MAP_CONFIG = {
   defaultZoom: 17, // Tightly zoomed in on the school neighborhood
   minZoom: 17,
-  maxZoom: 19,
+  maxZoom: 18,
 };

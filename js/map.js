@@ -7,12 +7,13 @@ export let routePolylineBase = null;
 export let routePolylineGlow = null;
 export let currentUserLatLng = { lat: CENTER[0], lng: CENTER[1] };
 
+// Directional user icon with a rotatable arrow indicator
 const userIcon = L.divIcon({
   className: "custom-user-marker",
   html: `<div class="relative flex items-center justify-center w-8 h-8">
            <div class="absolute w-8 h-8 bg-blue-500/30 rounded-full animate-ping"></div>
-           <div class="w-5 h-5 bg-blue-600 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-white text-[10px]">
-               <i class="fa-solid fa-user text-[9px]"></i>
+           <div id="user-heading-indicator" class="w-7 h-7 bg-blue-600 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-white text-xs transition-transform duration-100" style="transform: rotate(0deg);">
+               <i class="fa-solid fa-location-arrow text-[10px]"></i>
            </div>
          </div>`,
   iconSize: [32, 32],
@@ -46,7 +47,6 @@ export function initializeMap(onPinSelectedCallback) {
 
   L.control.zoom({ position: "topright" }).addTo(map);
 
-  // Live online tiles with automatic offline caching via Service Worker (with API Key)
   L.tileLayer(
     "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=cb1_4k4e_1_a33807e1a728fc1536a6ebe6",
     {
@@ -58,14 +58,58 @@ export function initializeMap(onPinSelectedCallback) {
     },
   ).addTo(map);
 
-  updateUserLocationMarker(CENTER[0], CENTER[1], "Your Location");
+  updateUserLocationMarker(CENTER[0], CENTER[1]);
   loadEvacuationCentersFromJSON(onPinSelectedCallback);
+  initDeviceOrientation();
 
   map.on("movestart", () => {
     if (typeof window.hidePanelCallback === "function") {
       window.hidePanelCallback();
     }
   });
+}
+
+function initDeviceOrientation() {
+  if (window.DeviceOrientationEvent) {
+    window.addEventListener(
+      "deviceorientation",
+      (event) => {
+        let heading = null;
+        if (event.webkitCompassHeading !== undefined) {
+          heading = event.webkitCompassHeading; // iOS Safari compass heading
+        } else if (event.alpha !== null) {
+          heading = 360 - event.alpha; // Android standard heading
+        }
+
+        if (heading !== null) {
+          updateUserHeading(heading);
+        }
+      },
+      true,
+    );
+  }
+}
+
+export function requestCompassPermission() {
+  if (
+    typeof DeviceOrientationEvent !== "undefined" &&
+    typeof DeviceOrientationEvent.requestPermission === "function"
+  ) {
+    DeviceOrientationEvent.requestPermission()
+      .then((response) => {
+        if (response === "granted") {
+          console.log("Compass permission granted.");
+        }
+      })
+      .catch(console.warn);
+  }
+}
+
+export function updateUserHeading(heading) {
+  const indicator = document.getElementById("user-heading-indicator");
+  if (indicator) {
+    indicator.style.transform = `rotate(${heading}deg)`;
+  }
 }
 
 async function loadEvacuationCentersFromJSON(onPinSelectedCallback) {

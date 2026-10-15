@@ -1,20 +1,15 @@
-const CACHE_NAME = "gabaylink-navigator-v3";
-const TILE_CACHE_NAME = "gabaylink-tiles-cache-v1";
+const CACHE_NAME = "evac-routing-cache-v1";
 const ASSETS_TO_CACHE = [
+  "./",
   "./index.html",
-  "./manifest.json",
-  "./evacuation_centers.json",
-  "./js/constants.js",
+  "./js/app.js",
   "./js/map.js",
   "./js/routing.js",
-  "./js/app.js",
-  "https://cdn.tailwindcss.com",
-  "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",
-  "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
-  "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css",
-  "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap",
+  "./export.geojson", // This ensures your road network is stored in the browser cache!
+  // Add your CSS or icon paths here if needed
 ];
 
+// Install Event: Cache all essential assets in the browser
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -24,61 +19,38 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
+// Activate Event: Clean up old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME && key !== TILE_CACHE_NAME) {
-            return caches.delete(key);
-          }
-        }),
+        keys
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => caches.delete(key)),
       );
     }),
   );
   self.clients.claim();
 });
 
+// Fetch Event: Serve from browser cache first, fallback to network
 self.addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
-
-  // Runtime caching for map tiles (Carto / OSM) with API keys
-  if (
-    url.origin.includes("basemaps.cartocdn.com") ||
-    url.origin.includes("openstreetmap.org")
-  ) {
-    event.respondWith(
-      caches.open(TILE_CACHE_NAME).then((cache) => {
-        return cache.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          return fetch(event.request)
-            .then((networkResponse) => {
-              if (networkResponse && networkResponse.status === 200) {
-                cache.put(event.request, networkResponse.clone());
-              }
-              return networkResponse;
-            })
-            .catch(() => {
-              return new Response("", {
-                status: 404,
-                statusText: "Offline tile unavailable",
-              });
-            });
-        });
-      }),
-    );
-    return;
-  }
-
-  // Standard cache-first strategy for app assets
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        return cachedResponse;
+        return cachedResponse; // Found in browser storage!
       }
-      return fetch(event.request).catch(() => {});
+      return fetch(event.request)
+        .then((networkResponse) => {
+          // Dynamically cache new requests (like map tiles)
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, networkResponse.clone());
+            return networkResponse;
+          });
+        })
+        .catch(() => {
+          // Fallback behavior if offline and asset isn't cached
+        });
     }),
   );
 });
