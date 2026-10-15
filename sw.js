@@ -3,10 +3,14 @@ const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
   "./js/app.js",
+  "./js/constants.js",
   "./js/map.js",
   "./js/routing.js",
-  "./export.geojson", // This ensures your road network is stored in the browser cache!
-  // Add your CSS or icon paths here if needed
+  "./evacuation_centers.json",
+  "./export.geojson", // Ensures your road network is stored in the browser cache
+  "./manifest.json",
+  "./pubic/android-chrome-192x192.png",
+  "./pubic/android-chrome-512x512.png",
 ];
 
 // Install Event: Cache all essential assets in the browser
